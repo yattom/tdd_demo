@@ -18,17 +18,28 @@ def test():
 def watch():
     from watchdog.observers import Observer
     from watchdog import events
+    from threading import Thread
+
+    def delayed_action(func):
+        time.sleep(1)
+        func()
 
     class MyHandler(events.FileSystemEventHandler):
+
+        changed = False
+
         def on_any_event(self, event):
             if isinstance(event, events.FileModifiedEvent) or isinstance(event, events.FileDeletedEvent):
                 if event.src_path.endswith('.py'):
-                    self.fire()
+                    if not MyHandler.changed:
+                        MyHandler.changed = True
+                        Thread(target=self.fire).start()
 
         def fire(self):
             sh('clear')
             try:
                 test()
+                MyHandler.changed = False
             except paver.tasks.BuildFailure:
                 pass
 

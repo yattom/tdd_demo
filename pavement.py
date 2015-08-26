@@ -15,6 +15,11 @@ def test():
     sh('py.test %s'%(APP_PATH))
 
 @task
+def testv():
+    os.environ['PYTHONPATH'] = '.'
+    sh('py.test -v %s'%(APP_PATH))
+
+@task
 def watch():
     from watchdog.observers import Observer
     from watchdog import events

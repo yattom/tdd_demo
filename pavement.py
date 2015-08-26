@@ -39,9 +39,9 @@ def watch():
             sh('clear')
             try:
                 test()
-                MyHandler.changed = False
             except paver.tasks.BuildFailure:
                 pass
+            MyHandler.changed = False
 
     observer = Observer()
     observer.schedule(MyHandler(), APP_PATH, recursive=True)

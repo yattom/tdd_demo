@@ -17,7 +17,21 @@ def sh(cmd, with_stderr=False):
         return stdoutdata.decode()
 
 
-class Helper:
+class ObjectHelper:
+    def 初期化(self):
+        todo.clear()
+
+    def TODO追加(self, text, state=None, add_at=None, due=None):
+        todo.put(text=text, state=state, add_at=add_at, due=due)
+
+    def すべてのTODO(self):
+        return todo.get_all()
+
+    def 最後のTODO(self):
+        return todo.get_last()
+
+
+class CommandLineAppHelper:
     def 初期化(self):
         sh("python -m todoapp.todo clear")
 
@@ -69,10 +83,12 @@ class Helper:
             lines = lines[4:]
         return todos
 
-@pytest.fixture()
+
+@pytest.fixture(params=[CommandLineAppHelper, ObjectHelper])
 def helper(request):
-    request.cls.helper = Helper()
+    request.cls.helper = request.param()
     request.cls.helper.初期化()
+
 
 @pytest.mark.usefixtures("helper")
 class TestTODO操作:

@@ -1,7 +1,10 @@
 # coding: utf-8
 
 from datetime import datetime
+from bson import json_util
+
 import argparse
+import json
 
 TODO_STATES = {
     'TODO': 0
@@ -9,18 +12,17 @@ TODO_STATES = {
 
 todos = []
 
-def date_convert(s):
-    return datetime.strptime(s, '%Y/%m/%d')
+DATETIME_FMT = '%Y/%m/%d %H:%M'
 
 def datetime_convert(s):
-    return datetime.strptime(s, '%Y/%m/%d %H:%M')
+    return datetime.strptime(s, DATETIME_FMT)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('cmd', type=str)
 parser.add_argument('-t', '--text', type=str, default='')
 parser.add_argument('-s', '--state', type=str)
-parser.add_argument('-d', '--due', type=date_convert)
-parser.add_argument('--add_at', type=datetime_convert)
+parser.add_argument('-d', '--due', type=datetime_convert)
+parser.add_argument('--add-at', type=datetime_convert)
 
 def state_name(val):
     for n, v in TODO_STATES.items():
@@ -46,16 +48,53 @@ def clear():
     global todos
     todos = []
 
+def save():
+    with open('todo.json', 'w') as f:
+        json.dump(todos, f, default=json_util.default)
+
+def load():
+    global todos
+    with open('todo.json') as f:
+        todos = json.load(f, object_hook=json_util.object_hook)
 
 def main():
     args = parser.parse_args()
-    if args.cmd == 'add':
-        put(text=args.text, state=args.state, add_at=args.add_at, due=args.due)
+    if args.cmd == 'clear':
+        clear()
+        save()
+    elif args.cmd == 'add':
+        load()
+        if not args.state:
+            state = TODO_STATES['TODO']
+        else:
+            state = TODO_STATES[args.state]
+        put(text=args.text, state=state, add_at=args.add_at, due=args.due)
+        save()
     elif args.cmd == 'showall':
-        print('TODO1')
-        print('TODO')
-        print('2015/08/26 12:00')
-        print('2015/08/26 10:00')
+        load()
+        for item in get_all():
+            if not item:
+                return
+            print(item['text'])
+            print(state_name(item['state']))
+            if item['due']:
+                print(item['due'].strftime(DATETIME_FMT))
+            else:
+                print('')
+            print(item['add_at'].strftime(DATETIME_FMT))
+    elif args.cmd == 'showlast':
+        load()
+        item = get_last()
+        if not item:
+            return
+        print(item['text'])
+        print(state_name(item['state']))
+        if item['due']:
+            print(item['due'].strftime(DATETIME_FMT))
+        else:
+            print('')
+        print(item['add_at'].strftime(DATETIME_FMT))
+
 
 if __name__=='__main__':
     main()

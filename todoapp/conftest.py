@@ -24,10 +24,13 @@ class ObjectHelper:
         todo.put(text=text, state=state, add_at=add_at, due=due)
 
     def すべてのTODO(self):
-        return todo.get_all()
+        return [dict(text=e.text, state=e.state, due=e.due, add_at=e.add_at) for e in todo.get_all()]
 
     def 最後のTODO(self):
-        return todo.get_last()
+        e = todo.get_last()
+        if not e:
+            return None
+        return dict(text=e.text, state=e.state, due=e.due, add_at=e.add_at)
 
 
 class CommandLineAppHelper:

@@ -24,6 +24,24 @@ parser.add_argument('-s', '--state', type=str)
 parser.add_argument('-d', '--due', type=datetime_convert)
 parser.add_argument('--add-at', type=datetime_convert)
 
+class ToDo:
+    def __init__(self, text, state, due, add_at=None):
+        self.text = text
+        self.state = state
+        self.due = due
+        if not add_at:
+            add_at = datetime.now()
+        self.add_at = add_at
+
+    def __eq__(self, other):
+        if not isinstance(other, ToDo):
+            return False
+        return (self.text == other.text and
+                self.state == other.state and
+                self.due == other.due and
+                self.add_at == other.add_at)
+
+
 def state_name(val):
     for n, v in TODO_STATES.items():
         if v == val:
@@ -34,9 +52,7 @@ def get_all():
     return todos
 
 def put(text, state, due, add_at=None):
-    if not add_at:
-        add_at = datetime.now()
-    item = {'text': text, 'state': state, 'add_at': add_at, 'due': due}
+    item = ToDo(text, state, due, add_at)
     todos.append(item)
 
 def get_last():
@@ -45,26 +61,32 @@ def get_last():
     return todos[-1]
 
 def clear():
-    global todos
-    todos = []
+    todos.clear()
 
 def save():
+    data = []
+    for t in todos:
+        d = dict(text=t.text, state=t.state, due=t.due, add_at=t.add_at)
+        data.append(d)
     with open('todo.json', 'w') as f:
-        json.dump(todos, f, default=json_util.default)
+        json.dump(data, f, default=json_util.default)
 
 def load():
-    global todos
+    clear()
     with open('todo.json') as f:
-        todos = json.load(f, object_hook=json_util.object_hook)
+        data = json.load(f, object_hook=json_util.object_hook)
+    for d in data:
+        t = ToDo(text=d['text'], state=d['state'], due=d['due'], add_at=d['add_at'])
+        todos.append(t)
 
 def dump_item(item):
-    print(item['text'])
-    print(state_name(item['state']))
-    if item['due']:
-        print(item['due'].strftime(DATETIME_FMT))
+    print(item.text)
+    print(state_name(item.state))
+    if item.due:
+        print(item.due.strftime(DATETIME_FMT))
     else:
         print('')
-    print(item['add_at'].strftime(DATETIME_FMT))
+    print(item.add_at.strftime(DATETIME_FMT))
 
 def main():
     args = parser.parse_args()

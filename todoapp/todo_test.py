@@ -18,12 +18,10 @@ def sh(cmd, with_stderr=False):
 
 
 class Helper:
-    @staticmethod
-    def 初期化():
+    def 初期化(self):
         sh("python -m todoapp.todo clear")
 
-    @staticmethod
-    def TODO追加(text, state=None, add_at=None, due=None):
+    def TODO追加(self, text, state=None, add_at=None, due=None):
         if not state:
             state = todo.TODO_STATES['TODO']
 
@@ -43,91 +41,84 @@ class Helper:
             duearg = ""
         sh("python -m todoapp.todo add %s %s %s -t '%s'"%(statearg, addatarg, duearg, text))
 
-    @staticmethod
-    def すべてのTODO():
-        todos = []
+    def すべてのTODO(self):
         output = sh("python -m todoapp.todo showall")
-        lines = output.split('\n')
-        while len(lines) > 1:
-            value = {}
-            value['text'] = lines[0].strip()
-            value['state'] = todo.TODO_STATES[lines[1].strip()]
-            if lines[2].strip():
-                value['due'] = datetime.strptime(lines[2].strip(), todo.DATETIME_FMT)
-            else:
-                value['due'] = None
-            value['add_at'] = datetime.strptime(lines[3].strip(), todo.DATETIME_FMT)
-            todos.append(value)
-            lines = lines[4:]
-        return todos
+        return self.parse_todos(output)
 
-    @staticmethod
-    def 最後のTODO():
-        todos = []
+    def 最後のTODO(self):
         output = sh("python -m todoapp.todo showlast")
-        lines = output.split('\n')
-        while len(lines) > 1:
-            value = {}
-            value['text'] = lines[0].strip()
-            value['state'] = todo.TODO_STATES[lines[1].strip()]
-            if lines[2].strip():
-                value['due'] = datetime.strptime(lines[2].strip(), todo.DATETIME_FMT)
-            else:
-                value['due'] = None
-            value['add_at'] = datetime.strptime(lines[3].strip(), todo.DATETIME_FMT)
-            todos.append(value)
-            lines = lines[4:]
+        todos = self.parse_todos(output)
         if todos:
             return todos[-1]
         else:
             return None
 
+    def parse_todos(self, output):
+        todos = []
+        lines = [l.strip() for l in output.split('\n')]
+        while len(lines) > 1:
+            value = {}
+            value['text'] = lines[0]
+            value['state'] = todo.TODO_STATES[lines[1]]
+            if lines[2]:
+                value['due'] = datetime.strptime(lines[2], todo.DATETIME_FMT)
+            else:
+                value['due'] = None
+            value['add_at'] = datetime.strptime(lines[3], todo.DATETIME_FMT)
+            todos.append(value)
+            lines = lines[4:]
+        return todos
 
-def setup_function(fn):
-    Helper.初期化()
+class TestTODO操作:
+    @classmethod
+    def setup_method(self, fn):
+        self.helper = Helper()
+        self.helper.初期化()
 
-def test_最初は空():
-    assert Helper.すべてのTODO() == []
+    def test_最初は空(self):
+        assert self.helper.すべてのTODO() == []
 
-def test_TODOの属性():
-    Helper.TODO追加(text='TODO1',
-                    state=todo.TODO_STATES['TODO'],
-                    add_at=datetime(2015, 8, 26, 10, 0, 0),
-                    due=datetime(2015, 8, 26, 12, 0, 0))
-    assert Helper.すべてのTODO() == [{'text': 'TODO1',
-                                      'state': todo.TODO_STATES['TODO'],
-                                      'add_at': datetime(2015, 8, 26, 10, 0, 0),
-                                      'due': datetime(2015, 8, 26, 12, 0, 0)},
-                                    ]
+    def test_TODOの属性(self):
+        add_at = datetime(2015, 8, 26, 10, 0, 0)
+        due=datetime(2015, 8, 26, 12, 0, 0)
+        self.helper.TODO追加(text='TODO1',
+                        state=todo.TODO_STATES['TODO'],
+                        add_at=add_at,
+                        due=due)
+        assert self.helper.すべてのTODO() == [{'text': 'TODO1',
+                                         'state': todo.TODO_STATES['TODO'],
+                                         'add_at': add_at,
+                                         'due': due},
+                                        ]
 
-def test_TODOの属性_add_atは現在時刻():
-    Helper.TODO追加(text='TODO1')
-    actual = Helper.最後のTODO()['add_at']
-    now = datetime.now()
-    assert now - actual <= timedelta(seconds=60)
+    def test_TODOの属性_add_atは現在時刻(self):
+        self.helper.TODO追加(text='TODO1')
+        actual = self.helper.最後のTODO()['add_at']
+        now = datetime.now()
+        assert now - actual <= timedelta(seconds=60)
 
-def test_最後の項目を取得する_空の場合():
-    assert Helper.最後のTODO() == None
+    def test_最後の項目を取得する_空の場合(self):
+        assert self.helper.最後のTODO() == None
 
-def test_最後の項目を取得する():
-    Helper.TODO追加(text='TODO1')
-    assert Helper.最後のTODO()['text'] == 'TODO1'
+    def test_最後の項目を取得する(self):
+        self.helper.TODO追加(text='TODO1')
+        assert self.helper.最後のTODO()['text'] == 'TODO1'
 
-def test_最後の項目を取得する_2件の場合():
-    Helper.TODO追加(text='TODO1')
-    Helper.TODO追加(text='TODO2')
-    assert Helper.最後のTODO()['text'] == 'TODO2'
+    def test_最後の項目を取得する_2件の場合(self):
+        self.helper.TODO追加(text='TODO1')
+        self.helper.TODO追加(text='TODO2')
+        assert self.helper.最後のTODO()['text'] == 'TODO2'
 
-def test_すべての項目を取得する():
-    Helper.TODO追加(text='TODO1')
-    actual = Helper.すべてのTODO()
-    assert len(actual) == 1
-    assert actual[0]['text'] == 'TODO1'
+    def test_すべての項目を取得する(self):
+        self.helper.TODO追加(text='TODO1')
+        actual = self.helper.すべてのTODO()
+        assert len(actual) == 1
+        assert actual[0]['text'] == 'TODO1'
 
-def test_すべての項目を取得する_2件の場合():
-    Helper.TODO追加(text='TODO1')
-    Helper.TODO追加(text='TODO2')
-    actual = Helper.すべてのTODO()
-    assert len(actual) == 2
-    assert actual[0]['text'] == 'TODO1'
-    assert actual[1]['text'] == 'TODO2'
+    def test_すべての項目を取得する_2件の場合(self):
+        self.helper.TODO追加(text='TODO1')
+        self.helper.TODO追加(text='TODO2')
+        actual = self.helper.すべてのTODO()
+        assert len(actual) == 2
+        assert actual[0]['text'] == 'TODO1'
+        assert actual[1]['text'] == 'TODO2'

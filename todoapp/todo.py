@@ -57,6 +57,15 @@ def load():
     with open('todo.json') as f:
         todos = json.load(f, object_hook=json_util.object_hook)
 
+def dump_item(item):
+    print(item['text'])
+    print(state_name(item['state']))
+    if item['due']:
+        print(item['due'].strftime(DATETIME_FMT))
+    else:
+        print('')
+    print(item['add_at'].strftime(DATETIME_FMT))
+
 def main():
     args = parser.parse_args()
     if args.cmd == 'clear':
@@ -73,27 +82,13 @@ def main():
     elif args.cmd == 'showall':
         load()
         for item in get_all():
-            if not item:
-                return
-            print(item['text'])
-            print(state_name(item['state']))
-            if item['due']:
-                print(item['due'].strftime(DATETIME_FMT))
-            else:
-                print('')
-            print(item['add_at'].strftime(DATETIME_FMT))
+            dump_item(item)
     elif args.cmd == 'showlast':
         load()
         item = get_last()
         if not item:
             return
-        print(item['text'])
-        print(state_name(item['state']))
-        if item['due']:
-            print(item['due'].strftime(DATETIME_FMT))
-        else:
-            print('')
-        print(item['add_at'].strftime(DATETIME_FMT))
+        dump_item(item)
 
 
 if __name__=='__main__':

@@ -69,12 +69,13 @@ class Helper:
             lines = lines[4:]
         return todos
 
-class TestTODO操作:
-    @classmethod
-    def setup_method(self, fn):
-        self.helper = Helper()
-        self.helper.初期化()
+@pytest.fixture()
+def helper(request):
+    request.cls.helper = Helper()
+    request.cls.helper.初期化()
 
+@pytest.mark.usefixtures("helper")
+class TestTODO操作:
     def test_最初は空(self):
         assert self.helper.すべてのTODO() == []
 
@@ -113,12 +114,10 @@ class TestTODO操作:
         self.helper.TODO追加(text='TODO1')
         actual = self.helper.すべてのTODO()
         assert len(actual) == 1
-        assert actual[0]['text'] == 'TODO1'
+        assert [e['text'] for e in actual] == ['TODO1']
 
     def test_すべての項目を取得する_2件の場合(self):
         self.helper.TODO追加(text='TODO1')
         self.helper.TODO追加(text='TODO2')
         actual = self.helper.すべてのTODO()
-        assert len(actual) == 2
-        assert actual[0]['text'] == 'TODO1'
-        assert actual[1]['text'] == 'TODO2'
+        assert [e['text'] for e in actual] == ['TODO1', 'TODO2']

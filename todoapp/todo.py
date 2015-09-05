@@ -2,6 +2,7 @@
 
 import sys
 import os
+import json
 
 todos = []
 
@@ -20,10 +21,17 @@ def get_last():
     return todos[-1]
 
 def save():
-    pass
+    data = [dict(text=i.text, assigned_to=i.assigned_to, due=i.due)
+            for i in todos]
+    with open('todo.json', 'w') as f:
+        json.dump(data, f)
 
 def load():
-    pass
+    with open('todo.json') as f:
+        data = json.load(f)
+    clear()
+    for d in data:
+        append(d['text'], d['assigned_to'], d['due'])
 
 def clear():
     todos.clear()

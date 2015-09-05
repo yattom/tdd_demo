@@ -35,7 +35,7 @@ def watch():
 
         def on_any_event(self, event):
             if isinstance(event, events.FileModifiedEvent) or isinstance(event, events.FileDeletedEvent):
-                if event.src_path.endswith('.py'):
+                if event.src_path.endswith('.py') or event.src_path.endswith('.html'):
                     if not MyHandler.changed:
                         MyHandler.changed = True
                         Thread(target=self.fire).start()

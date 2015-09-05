@@ -53,3 +53,36 @@ class TestTODO操作:
         self.helper.TODO追加(text='TODO2')
         actual = self.helper.すべてのTODO()
         assert [e['text'] for e in actual] == ['TODO1', 'TODO2']
+
+
+def test_hello_web(webhelper):
+    from selenium import webdriver
+    from selenium.webdriver.common.keys import Keys
+    from selenium.webdriver.common.by import By
+
+    browser = webdriver.Firefox()
+    browser.get('http://localhost:5000/hello')
+    assert 'Hello' in browser.find_element(By.CSS_SELECTOR, "BODY").text
+
+def test_最初は空_web(webhelper):
+    from selenium import webdriver
+    from selenium.webdriver.common.keys import Keys
+    from selenium.webdriver.common.by import By
+
+    browser = webdriver.Firefox()
+    browser.get('http://localhost:5000/')
+    assert browser.find_elements(By.CSS_SELECTOR, ".todos .todo") == []
+
+def test_最後の項目を取得する():
+    from selenium import webdriver
+    from selenium.webdriver.common.keys import Keys
+    from selenium.webdriver.common.by import By
+
+    browser = webdriver.Firefox()
+    browser.get('http://localhost:5000/create')
+    input_text = browser.find_element_by_name("text")
+    input_text.send_keys('TODO1')
+    input_text.submit()
+
+    actual = browser.find_elements(By.CSS_SELECTOR, ".todos .todo")[0]
+    assert 'TODO1' in actual.text

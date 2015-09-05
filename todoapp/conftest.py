@@ -86,9 +86,45 @@ class CommandLineAppHelper:
         return todos
 
 
-@pytest.fixture(params=[CommandLineAppHelper, ObjectHelper])
+class WebHelper:
+    def __init__(self):
+        print('webhelper init')
+        self.procs = []
+        x_proc = subprocess.Popen(['Xvfb', ':1'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        webapp_proc = subprocess.Popen(['python', 'todoapp/webapp.py'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.procs.append(x_proc)
+        self.procs.append(webapp_proc)
+
+    def 初期化(self):
+        pass
+
+    def すべてのTODO(self):
+        pass
+
+    def 後始末(self):
+        for p in self.procs:
+            try:
+                p.terminate()
+                p.wait()
+            except:
+                pass
+
+
+@pytest.fixture(scope='function', params=[CommandLineAppHelper, ObjectHelper])
 def helper(request):
     request.cls.helper = request.param()
     request.cls.helper.初期化()
+
+@pytest.fixture(scope='module')
+def webhelper(request):
+    helper = WebHelper()
+
+    def finalize():
+        print('webhelper finalize')
+        helper.後始末()
+
+    request.addfinalizer(finalize)
+    helper.初期化()
+    return helper
 
 

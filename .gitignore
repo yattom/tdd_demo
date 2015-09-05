@@ -3,6 +3,7 @@ include/
 man/
 lib/
 share/
+selenium/
 *pyc
 pip-selfcheck.json
 todo.json

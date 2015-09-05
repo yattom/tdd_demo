@@ -8,7 +8,7 @@ class ToDo:
         self.text = text
 
 def append(text):
-    todos.append(ToDo('TODO 1'))
+    todos.append(ToDo(text))
 
 def get_last():
     if not todos:

@@ -19,6 +19,18 @@ def get_last():
         return None
     return todos[-1]
 
+def save():
+    pass
+
+def load():
+    pass
+
+def clear():
+    todos.clear()
+
+def count():
+    return len(todos)
+
 def main():
     if sys.argv[1] == 'add':
         pass

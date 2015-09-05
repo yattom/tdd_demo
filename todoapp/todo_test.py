@@ -51,3 +51,14 @@ def test_cmd_TODOのすべての属性を取得できる():
     assert output_lines[0] == 'TODO 1'
     assert output_lines[1] == 'yattom'
     assert output_lines[2] == '2015/9/12'
+
+def test_ファイルに保存できる():
+    todo.append('TODO 1')
+    todo.save()
+    todo.clear()
+    assert todo.count() == 0
+    todo.load()
+    assert todo.count() == 1
+    actual = todo.get_last()
+    assert actual.text == 'TODO 1'
+
